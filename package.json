@@ -1,0 +1,33 @@
+{
+  "name": "jest",
+  "version": "0.1.0",
+  "description": "Node.js enhanced JSON-RPC library",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha -t 3000 -R spec -u bdd --harmony $(find tests -name 'test_*.js')"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mtabini/node-jest.git"
+  },
+  "keywords": [
+    "json-rpc",
+    "rpc",
+    "remote",
+    "service",
+    "soa"
+  ],
+  "author": "Marco Tabini <marcot@tabini.ca>",
+  "license": "BSD 2-Clause",
+  "bugs": {
+    "url": "https://github.com/mtabini/node-jest/issues"
+  },
+  "homepage": "https://github.com/mtabini/node-jest",
+  "dependencies": {
+    "q": "^1.0.1"
+  },
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "mocha": "^1.18.2"
+  }
+}
