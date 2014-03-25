@@ -60,14 +60,6 @@ describe('The jest server', function() {
       return 'CONTEXT';
     }
 
-    server.route('test.sync', function() {
-      return 10;
-    });
-
-    server.route('test.sync.param', function(n) {
-      return n * 10;
-    });
-
     server.route('test.async.param', function(n, cb) {
       expect(cb).to.be.a('function');
       expect(cb).to.include.key('context');
@@ -77,7 +69,7 @@ describe('The jest server', function() {
       });
     });
 
-    server.route('test.async.promise', function(n) {
+    server.proute('test.async.promise', function(n) {
       var deferred = Q.defer();
 
       process.nextTick(function() {
@@ -87,16 +79,12 @@ describe('The jest server', function() {
       return deferred.promise;
     });
 
-    server.route('test.sync.error', function() {
-      throw new Error('Error sync');
-    });
-
     server.route('test.async.error', function(cb) {
       cb(new Error('Error async'));
     });
 
-    server.route('test.promise.error', function(cb) {
-      var defer = Q.deferred();
+    server.proute('test.promise.error', function(n) {
+      var defer = Q.defer();
 
       process.nextTick(function() {
         defer.reject(new Error('Error promise'));
@@ -158,28 +146,6 @@ describe('The jest server', function() {
     expect(test).to.throw(Error);
   });
 
-  it('should properly handle a synchronous method', function(done) {
-    sendRequest('test.sync', [])
-
-    .then(function(result) {
-      expect(result).to.equal(10);
-      done();
-    })
-
-    .done();
-  });
-
-  it('should properly handle a synchronous method with parameters', function(done) {
-    sendRequest('test.sync.param', [10])
-
-    .then(function(result) {
-      expect(result).to.equal(100);
-      done();
-    })
-
-    .done();
-  });
-
   it('should properly handle an asynchronous method with parameters', function(done) {
     sendRequest('test.async.param', [2])
 
@@ -196,17 +162,6 @@ describe('The jest server', function() {
 
     .then(function(result) {
       expect(result).to.equal(8);
-      done();
-    })
-
-    .done();
-  });
-
-  it('should properly handle a synchronous method that throws an error', function(done) {
-    sendRequest('test.sync.error', [2])
-
-    .fail(function(err) {
-      expect(err).to.be.an.instanceOf(Error);
       done();
     })
 
@@ -237,10 +192,19 @@ describe('The jest server', function() {
 
   it('should properly audit transactions', function(done) {
     server.once('jestAudit', function(method, params, result, timers, context, id) {
-      console.log(timers);
+      expect(method).to.equal('test.async.param');
+      expect(params).to.be.an('array');
+      expect(params).to.have.length(2);
+      expect(result).to.equal(10);
+      expect(timers).to.be.an('object');
+      expect(timers).to.have.keys('total', 'steps');
+      expect(context).to.equal('CONTEXT');
+      expect(id).to.be.a('number');
+
+      done();
     });
 
-    sendRequest('test.sync', []).done();
+    sendRequest('test.async.param', [5]).done();
   });
 
   after(function(done) {
