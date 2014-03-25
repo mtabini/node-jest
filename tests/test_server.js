@@ -63,13 +63,17 @@ describe('The jest server', function() {
     server.route('test.async.param', function(n, cb) {
       expect(cb).to.be.a('function');
       expect(cb).to.include.key('context');
+      expect(cb.context).to.equal('CONTEXT');
 
       process.nextTick(function() {
         cb(null, n * 2);
       });
     });
 
-    server.proute('test.async.promise', function(n) {
+    server.proute('test.async.promise', function(n, context) {
+      expect(context).to.be.a('string');
+      expect(context).to.equal('CONTEXT');
+      
       var deferred = Q.defer();
 
       process.nextTick(function() {
