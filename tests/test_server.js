@@ -7,7 +7,7 @@ var Q = require('q');
 
 var jest = require('../index');
 
-describe('The jest server', function() {
+describe('The server', function() {
   var server = jest.server();
   var socket;
 
