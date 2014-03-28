@@ -8,6 +8,22 @@ var server;
 
 describe('The Jest client', function() {
 
+  function createClient () {
+    var client = jest.client(
+      {
+        port: 8000
+      }
+    );
+
+    client.auth = function(socket, cb) {
+      process.nextTick(function() {
+        cb(null, 123);
+      });
+    };
+
+    return client;
+  }
+
   before(function(done) {
     server = jest.server();
 
@@ -34,20 +50,40 @@ describe('The Jest client', function() {
   });
 
   it('should support authentication', function(done) {
-    var client = jest.client(
-      {
-        port: 8000
-      }
-    );
+    var client = createClient();
 
-    client.auth = function(auth, cb) {
-      process.nextTick(function() {
-        cb(null, 123);
-      });
-    };
-
-    client.on('ready', function() {
+    client.on('ready', function(ready) {
+      expect(ready).to.be.true;
       done();
+    });
+  });
+
+  it('should support performing a proxied call using promises', function(done) {
+    var client = createClient();
+
+    client.on('ready', function(ready) {
+      client.proxy.a.test('a')
+      .then(function(result) {
+        expect(result).to.be.a('string');
+        expect(result).to.equal('a1');
+
+        done();
+      })
+      .done();
+    });
+  });
+
+  it('should support performing a call using callbacks', function(done) {
+    var client = createClient();
+
+    client.on('ready', function(ready) {
+      client.proxy.a.test('a', function(err, result) {
+        expect(err).to.be.null;
+        expect(result).to.be.a('string');
+        expect(result).to.equal('a1');
+
+        done();
+      });
     });
   });
 
