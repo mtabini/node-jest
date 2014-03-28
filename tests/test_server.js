@@ -14,7 +14,7 @@ describe('The server', function() {
   var requests = {};
   var requestId = 0;
 
-  function _sendRequest (data, params) {
+  function _sendRequest (data) {
     var deferred = Q.defer();
 
     var id = requestId++;
@@ -56,9 +56,11 @@ describe('The server', function() {
   before(function(done) {
     server.requireAuth = true;
 
-    server.auth = function() {
-      return 'CONTEXT';
-    }
+    server.auth = function(auth, cb) {
+      process.nextTick(function() {
+        cb(null, 'CONTEXT');
+      });
+    };
 
     server.route('test.async.param', function(n, cb) {
       expect(cb).to.be.a('function');
@@ -87,7 +89,7 @@ describe('The server', function() {
       cb(new Error('Error async'));
     });
 
-    server.proute('test.promise.error', function(n) {
+    server.proute('test.promise.error', function() {
       var defer = Q.defer();
 
       process.nextTick(function() {
@@ -136,7 +138,7 @@ describe('The server', function() {
     server.route('test', function() {});
 
     function test() {
-    server.route('test', function() {});
+      server.route('test', function() {});
     }
 
     expect(test).to.throw(Error);
@@ -213,6 +215,6 @@ describe('The server', function() {
 
   after(function(done) {
     server.destroy(done);
-  })
+  });
 
 });
