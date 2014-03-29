@@ -12,12 +12,14 @@ var testServer;
 
 describe('The Jest client', function() {
 
-  function createClient (port) {
-    var client = jest.client(
-      {
-        port: port || defaultPort
-      }
-    );
+  function createClient () {
+    var args = Array.prototype.slice.apply(arguments);
+
+    if (!args.length) {
+      args = [defaultPort];
+    }
+
+    var client = jest.client.apply(undefined, args);
 
     client.auth = function(socket, cb) {
       process.nextTick(function() {
@@ -38,9 +40,11 @@ describe('The Jest client', function() {
 
     server = jest.server();
 
+    server.addition = 1;
+
     server.route('a.test', function(s, cb) {
       process.nextTick(function() {
-        cb(null, s + '1');
+        cb(null, s + server.addition);
       });
     });
 
@@ -172,7 +176,7 @@ describe('The Jest client', function() {
         Q.denodeify(createServer)(defaultPort + 2)
 
         .then(function() {
-          return Q.delay(500)
+          return Q.delay(10)
         })
 
         .then(function() {
@@ -184,6 +188,37 @@ describe('The Jest client', function() {
         .then(function(result) {
           expect(result).to.be.a('string');
           expect(result).to.equal('a1');
+
+          done();
+        })
+
+        .done();
+      });
+    });
+  });
+
+  it('should load-balance connections', function(done) {
+    Q.denodeify(createServer)(defaultPort + 3)
+
+    .then(function(localServer) {
+
+      localServer.addition = 2;
+
+      var client = createClient(defaultPort, defaultPort + 3);
+
+      client.once('ready', function() {
+        Q.delay(10)
+
+        .then(function() {
+          return Q.all([
+          client.proxy.a.test(0),
+          client.proxy.a.test(0)
+          ])
+        })
+
+        .then(function(results) {
+          expect(results).to.be.an('array');
+          expect(results).to.include(1, 2);
 
           done();
         })
