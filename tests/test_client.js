@@ -131,11 +131,11 @@ describe('The Jest client', function() {
   });
 
   it('should properly quarantine a failed connection', function(done) {
-    Q.denodeify(createServer)(8001)
+    Q.denodeify(createServer)(defaultPort + 1)
 
     .then(function(localServer) {
 
-      var client = createClient(8001);
+      var client = createClient(defaultPort + 1);
 
       client.once('ready', function() {
         localServer.destroy();
@@ -157,29 +157,38 @@ describe('The Jest client', function() {
     });
   });
 
-  it('should properly quarantine a failed connection', function(done) {
-    Q.denodeify(createServer)(8001)
+  it('should reconnect on failure', function(done) {
+    Q.denodeify(createServer)(defaultPort + 2)
 
     .then(function(localServer) {
 
-      var client = createClient(8001);
+      var client = createClient(defaultPort + 2);
 
       client.once('ready', function() {
         localServer.destroy();
       });
 
       client.once('disconnect', function() {
-        process.nextTick(function() {
-          expect(client._sockets.quarantined).to.have.length(1);
+        Q.denodeify(createServer)(defaultPort + 2)
 
-          client.proxy.a.test('a', function(err, result) {
-            expect(err).to.be.an.instanceOf(Error);
-            expect(err.message).to.match(/no connections available/i);
-            expect(result).to.be.undefined;
+        .then(function() {
+          return Q.delay(500)
+        })
 
-            done();
-          });
-        });
+        .then(function() {
+          expect(client.ready).to.be.true;
+
+          return client.proxy.a.test('a');
+        })
+
+        .then(function(result) {
+          expect(result).to.be.a('string');
+          expect(result).to.equal('a1');
+
+          done();
+        })
+
+        .done();
       });
     });
   });
