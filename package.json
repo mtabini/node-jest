@@ -18,7 +18,7 @@
     "soa"
   ],
   "author": "Marco Tabini <marcot@tabini.ca>",
-  "license": "BSD 2-Clause",
+  "license": "BSD",
   "bugs": {
     "url": "https://github.com/mtabini/node-jest/issues"
   },
