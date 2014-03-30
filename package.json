@@ -1,5 +1,5 @@
 {
-  "name": "jest",
+  "name": "node-jest",
   "version": "0.1.0",
   "description": "Node.js enhanced JSON-RPC library",
   "main": "index.js",
