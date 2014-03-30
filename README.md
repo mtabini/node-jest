@@ -194,7 +194,7 @@ Note that `ready` is called whenever the client transitions from a state in whic
 
 ### Handling connectivity failures
 
-Jest automatically handles connection failures by quarantining the offending socket and attempting to reconnect to the corresponding server. Because it is designed to work in environment that put a premium on availability, the reconnection retries are very aggressive: the first one occurs immediately upon disconnection; if that is unsuccessful, the next occurs after 100ms, and successive ones at intervals that increase geometrically at the rate of 1.5x.
+Jest automatically handles connection failures by quarantining the offending socket and attempting to reconnect to the corresponding server. Because it is designed to work in environments that put a premium on availability, the reconnection retries are very aggressive: the first one occurs immediately upon disconnection; if that is unsuccessful, the next occurs after 100ms, and successive ones at intervals that increase geometrically at the rate of 1.5x.
 
 When no connections are available, the client issues an `offline` event to advise you that it cannot perform any method calls. Attempts to execute methods will be met with an error that has a property called `offline` set to `true`.
 
