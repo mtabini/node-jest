@@ -198,7 +198,7 @@ Jest automatically handles connection failures by quarantining the offending soc
 
 When no connections are available, the client issues an `offline` event to advise you that it cannot perform any method calls. Attempts to execute methods will be met with an error that has a property called `offline` set to `true`.
 
-## Executing methods
+### Executing methods
 
 The client leverages Jest's service discovery and introspection features to greatly simplify the process of calling a method.
 
