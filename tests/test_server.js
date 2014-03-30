@@ -72,7 +72,9 @@ describe('The server', function() {
       });
     });
 
-    server.proute('test.async.promise', function(n, context) {
+    server.proute('test.async.promise', function(n) {
+      var context = server.context(arguments);
+
       expect(context).to.be.a('string');
       expect(context).to.equal('CONTEXT');
       
@@ -94,6 +96,21 @@ describe('The server', function() {
 
       process.nextTick(function() {
         defer.reject(new Error('Error promise'));
+      });
+
+      return defer.promise;
+    });
+
+    server.proute('test.promise.mult', function(a, b) {
+      var context = server.context(arguments);
+
+      expect(context).to.be.a('string');
+      expect(context).to.equal('CONTEXT');
+      
+      var defer = Q.defer();
+
+      process.nextTick(function() {
+        defer.resolve(a * (b || 2));
       });
 
       return defer.promise;
@@ -174,6 +191,17 @@ describe('The server', function() {
     .done();
   });
 
+  it('should properly handle an asynchronous promise-based method with empty parameters', function(done) {
+    sendRequest('test.promise.mult', [2])
+
+    .then(function(result) {
+      expect(result).to.equal(4);
+      done();
+    })
+
+    .done();
+  });
+
   it('should properly handle an asynchronous method that throws an error', function(done) {
     sendRequest('test.async.error', [2])
 
@@ -200,7 +228,7 @@ describe('The server', function() {
     server.once('jestAudit', function(method, params, result, timers, context, id) {
       expect(method).to.equal('test.async.param');
       expect(params).to.be.an('array');
-      expect(params).to.have.length(2);
+      expect(params).to.have.length(1);
       expect(result).to.equal(10);
       expect(timers).to.be.an('object');
       expect(timers).to.have.keys('total', 'steps');
