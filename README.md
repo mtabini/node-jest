@@ -4,12 +4,12 @@ Jest is a JSON-RPC compatible client/server library that allows a Node.js app ex
 
 It provides these features:
 
-- Client authentication*
+- Client authentication
 - Automatic load balancing and failover management
 - Service discovery and introspection
 - Compatibility with both promises and callback
 
-* Not compatible with plain-vanilla JSON-RPC
+(Note: client authentication and service discovery/introspections are not compatible with plain-vanilla JSON-RPC.)
 
 ## Installation
 
