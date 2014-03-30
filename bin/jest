@@ -1,0 +1,128 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var assert = require('assert');
+var program = require('commander');
+
+require('colors');
+
+var jest = require('../index');
+
+function printError (socket, err) {
+  if (!socket && !err) {
+    console.error('\nConnection error\n'.red);
+    process.exit(1);
+  }
+
+  if ((/error/i).test(socket.constructor.name)) {
+    err = socket;
+  }
+
+  console.error(('\n\nError: ' + err.message + '\n\n').red);
+  console.error(JSON.stringify(new Error().stack, null, ' '));
+  process.exit(1);
+}
+
+function parameterList (method) {
+  var list = (method.spec.params || []).map(function(param) {
+    return param.name;
+  });
+
+  return '(' + list.join(', ') + ') ' + (method.spec.retval && method.spec.retval.type ? method.spec.retVal.type : 'void')
+}
+
+function align(value, length) {
+  return value + (new Array(length - String(value).length + 1).join(' '));
+}
+
+function printMethodList (results) {
+  var nameLength = Math.max.apply(Math, results.map(function(el) { return (el.name || 'unknown').length }));
+
+  console.log();
+
+  results.forEach(function(result) {
+    console.log('  ' + align(result.name || 'unknown', nameLength).yellow, result.spec.description || 'No description avaialable');
+  });
+
+  console.log();
+}
+
+function printMethod (method) {
+  console.log(('\nMethod ' + method.name + parameterList(method) + ':\n').green);
+
+  var params = method.spec.params || [];
+
+  if (params.length) {
+    var nameLength = Math.max.apply(Math, params.map(function(el) { return (el.name || 'unknown').length }));
+    var typeLength = Math.max.apply(Math, params.map(function(el) { return (el.type || 'any').length }));
+
+    params.forEach(function(el) {
+      console.log(' ', align(el.name || 'unknown', nameLength).yellow, align(el.type || 'any', typeLength), el.description || 'No description available.', el.required ? ' (required)' : '');
+    });
+
+    var retVal = method.spec.retVal;
+
+    if (retVal) {
+      console.log('\n  ' + 'Return value:'.yellow + ' (' + (retVal.type || 'any') + ') ' + (retVal.description || 'No description available.\n'));
+    }
+
+    console.log();
+  }
+}
+
+function printResults () {
+  var api = client.api;
+  var regex = '';
+  var results = [];
+
+  if (program.args.length > 2) {
+    regex = program.args[2].trim();
+  }
+
+  regex = new RegExp('^' + (regex || '.*') + '$');
+
+  Object.keys(api).forEach(function(key) {
+    if (regex.test(key)) {
+      results.push({
+        name: key,
+        spec: api[key]
+      });
+    }
+  });
+
+  if (results.length > 1) {
+    printMethodList(results);
+  } else if (results.length == 1) {
+    printMethod(results[0]);
+  } else {
+    console.log('No methods matching `' + regex + '` found.');
+  }
+
+  client.removeAllListeners();
+  client.destroy();
+}
+
+
+program
+  .version('1.0')
+  .usage('[options] <hostname> <port> [regex]')
+  .option('-a <auth>', 'Set the authentication JSON payload')
+  .parse(process.argv);
+
+var host = program.args[0];
+var port = program.args[1];
+
+var client = jest.client({ host : host , port : port });
+
+client.auth = function authClient (socket, cb) {
+  process.nextTick(function() {
+    cb(null, JSON.stringify(JSON.parse(program.A)));
+  });
+}
+
+client.on('offline', printError);
+client.on('error', printError);
+client.on('authError', printError);
+
+client.on('ready', printResults);
