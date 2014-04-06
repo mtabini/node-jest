@@ -198,6 +198,12 @@ Jest automatically handles connection failures by quarantining the offending soc
 
 When no connections are available, the client issues an `offline` event to advise you that it cannot perform any method calls. Attempts to execute methods will be met with an error that has a property called `offline` set to `true`.
 
+When a connectivity issue arises, Jest also terminates all pending method calls, and returns an instance of the `Jest.errors.timeout` class. To avoid unwanted side effects, the client won't try to automatically fail the request over to the next client.
+
+### Handling timeouts
+
+By default, the client times out a method calls after ten seconds. You can change this value by setting the `timeout` property of the client.
+
 ### Executing methods
 
 The client leverages Jest's service discovery and introspection features to greatly simplify the process of calling a method.
@@ -363,11 +369,15 @@ Methods can transparently be called using either a traditional callback syntax, 
 
 A Boolean property that indicates whether the client is capable of processing requests (that is, whether at least one server has been successfully contacted)
 
+### client.timeout
+
+A property that indicates the number of milliseconds after which a request is considered to have timed out.
+
 ### Event: authError
 
 `function(err, socket)`
 
-Emitted when the client encounters `err` while attempting to authenticate itself to the server at `socket`. Note that the client will continue to attempt and authenticate with the remote host using a geometric retry interval.
+Emitted when the client encounters `err` (an instance of `Jest.errors.auth`) while attempting to authenticate itself to the server at `socket`. Note that the client will continue to attempt and authenticate with the remote host using a geometric retry interval.
 
 ### Event: connect
 
@@ -405,7 +415,7 @@ It is, therefore, important to plan accordingly (for example by using `EventEmit
 
 ## Limitations
 
-The current version of Jest is experimental, and should not (yet) be used in production. In particular, it cannot effectively handle timeouts, and leaks resources in the event of network errors. These issues will be fixed in an upcoming release.
+The current version of Jest is experimental, and should not (yet) be used in production.
 
 ## Contributing
 
