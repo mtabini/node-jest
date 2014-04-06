@@ -96,7 +96,7 @@ describe('The Jest client', function() {
   it('should support authentication', function(done) {
     var client = createClient();
 
-    client.once('ready', function(ready) {
+    client.once('ready', function() {
       done();
     });
   });
@@ -186,7 +186,7 @@ describe('The Jest client', function() {
         Q.denodeify(createServer)(defaultPort + 2)
 
         .then(function() {
-          return Q.delay(10)
+          return Q.delay(10);
         })
 
         .then(function() {
@@ -221,9 +221,9 @@ describe('The Jest client', function() {
 
         .then(function() {
           return Q.all([
-          client.proxy.a.test(0),
-          client.proxy.a.test(0)
-          ])
+            client.proxy.a.test(0),
+            client.proxy.a.test(0)
+          ]);
         })
 
         .then(function(results) {
