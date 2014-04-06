@@ -10,6 +10,10 @@ var jest = require('../index');
 var defaultPort = 8003;
 var testServer;
 
+
+Q.longStackSupport = true;
+
+
 describe('The Jest client', function() {
 
   function createClient () {
@@ -52,6 +56,12 @@ describe('The Jest client', function() {
       process.nextTick(function() {
         cb(new Error('Nope'));
       });
+    });
+
+    server.route('a.wait', function(cb) {
+      setTimeout(function() {
+        cb(null, null);
+      }, 1000);
     });
 
     server.requireAuth = true;
@@ -219,6 +229,35 @@ describe('The Jest client', function() {
         .then(function(results) {
           expect(results).to.be.an('array');
           expect(results).to.include(1, 2);
+
+          done();
+        })
+
+        .done();
+      });
+    });
+  });
+
+  it('should properly handle timeouts', function(done) {
+    Q.denodeify(createServer)(defaultPort + 4)
+
+    .then(function(localServer) {
+
+      localServer.addition = 2;
+
+      var client = createClient(defaultPort, defaultPort + 4);
+
+      client.timeout = 100;
+
+      client.once('ready', function() {
+        client.proxy.a.wait()
+
+        .then(function() {
+          throw new Error('This should not succeed…');
+        })
+
+        .fail(function(err) {
+          expect(err).to.be.an.instanceOf(jest.errors.timeout);
 
           done();
         })

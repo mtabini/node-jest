@@ -2,5 +2,6 @@
 
 module.exports = {
   server : require('./lib/server'),
-  client : require('./lib/client')
+  client : require('./lib/client'),
+  errors : require('./lib/errors')
 };
